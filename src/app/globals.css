@@ -1,26 +1,178 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Custom Scrollbar */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Base Styles */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-text-primary;
+  }
+  
+  html {
+    @apply antialiased;
+  }
+}
+
+/* Mobile Container */
+.mobile-container {
+  @apply max-w-[480px] mx-auto bg-surface min-h-screen relative;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+/* Custom Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+/* Animation Classes */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.2s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.2s ease-out;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Active Scale Effect */
+.active\:scale-98:active {
+  transform: scale(0.98);
+}
+
+/* Custom Border Width */
+.border-l-3 {
+  border-left-width: 3px;
+}
+
+.border-r-3 {
+  border-right-width: 3px;
+}
+
+/* Z-index utilities */
+.z-99 {
+  z-index: 99;
+}
+
+.z-100 {
+  z-index: 100;
+}
+
+/* Video Player Aspect Ratio */
+.aspect-video {
+  aspect-ratio: 16 / 9;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  @apply w-12 h-12 border-3 border-background border-t-primary rounded-full animate-spin;
+}
+
+/* Toast Styles */
+.toast {
+  @apply fixed bottom-20 left-1/2 -translate-x-1/2 z-[1000];
+  @apply px-7 py-3.5 rounded-xl font-semibold text-sm;
+  @apply shadow-heavy backdrop-blur-sm;
+  @apply max-w-[90%] text-center;
+  @apply animate-fade-in;
+}
+
+.toast.success {
+  @apply bg-green-500/95 text-white;
+  border-left: 4px solid theme('colors.green.600');
+}
+
+.toast.error {
+  @apply bg-red-500/95 text-white;
+  border-left: 4px solid theme('colors.red.600');
+}
+
+.toast.warning {
+  @apply bg-orange-500/95 text-white;
+  border-left: 4px solid theme('colors.orange.600');
+}
+
+.toast.info {
+  @apply bg-blue-500/95 text-white;
+  border-left: 4px solid theme('colors.blue.600');
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Dark Mode Support (Optional) */
+@media (prefers-color-scheme: dark) {
+  /* Add dark mode styles if needed */
 }
