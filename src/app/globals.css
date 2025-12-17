@@ -133,7 +133,7 @@
 
 /* Loading Spinner */
 .loading-spinner {
-  @apply w-12 h-12 border-3 border-background border-t-primary rounded-full animate-spin;
+  @apply w-12 h-12 border-2 border-background border-t-primary rounded-full animate-spin;
 }
 
 /* Toast Styles */

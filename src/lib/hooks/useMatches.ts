@@ -6,9 +6,10 @@ import { format } from 'date-fns';
 interface UseMatchesOptions {
   date: Date;
   enabled?: boolean;
+  initialData?: MatchesResponse | null;
 }
 
-export function useMatches({ date, enabled = true }: UseMatchesOptions) {
+export function useMatches({ date, enabled = true, initialData }: UseMatchesOptions) {
   const queryClient = useQueryClient();
   const dateKey = format(date, 'yyyyMMdd');
 
@@ -23,28 +24,37 @@ export function useMatches({ date, enabled = true }: UseMatchesOptions) {
     queryKey: ['matches', dateKey],
     queryFn: () => apiService.fetchMatches(date),
     enabled,
+    // ✅ Use initial data dari ISR/SSG
+    initialData: initialData || undefined,
     staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    gcTime: 5 * 60 * 1000,
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
+    // ✅ Refetch ONLY if window focused AND data is stale
+    refetchOnWindowFocus: true,
+    refetchOnMount: false, // Don't refetch if we have initial data
   });
 
-  // Background refresh untuk live matches
+  // ✅ SMART background refresh - only for live matches
   const backgroundRefresh = () => {
-    if (data?.leagues) {
-      const hasLiveMatches = data.leagues.some((league) =>
-        league.matches?.some((match) => 
-          match.status?.started && !match.status?.finished
-        )
-      );
+    if (!data?.leagues) return;
 
-      if (hasLiveMatches) {
-        queryClient.invalidateQueries({ queryKey: ['matches', dateKey] });
-      }
+    const hasLiveMatches = data.leagues.some((league) =>
+      league.matches?.some((match) => 
+        match.status?.started && !match.status?.finished
+      )
+    );
+
+    // ✅ Only invalidate if there are live matches
+    if (hasLiveMatches) {
+      queryClient.invalidateQueries({ 
+        queryKey: ['matches', dateKey],
+        refetchType: 'active', // Only refetch if currently viewing
+      });
     }
   };
 
-  // Prefetch next/prev day
+  // ✅ OPTIMIZED prefetch - use lower priority
   const prefetchAdjacentDays = () => {
     const nextDay = new Date(date);
     nextDay.setDate(nextDay.getDate() + 1);
@@ -52,17 +62,20 @@ export function useMatches({ date, enabled = true }: UseMatchesOptions) {
     const prevDay = new Date(date);
     prevDay.setDate(prevDay.getDate() - 1);
 
-    queryClient.prefetchQuery({
-      queryKey: ['matches', format(nextDay, 'yyyyMMdd')],
-      queryFn: () => apiService.fetchMatches(nextDay),
-      staleTime: 2 * 60 * 1000,
-    });
+    // ✅ Prefetch with lower priority (won't block current requests)
+    setTimeout(() => {
+      queryClient.prefetchQuery({
+        queryKey: ['matches', format(nextDay, 'yyyyMMdd')],
+        queryFn: () => apiService.fetchMatches(nextDay),
+        staleTime: 2 * 60 * 1000,
+      });
 
-    queryClient.prefetchQuery({
-      queryKey: ['matches', format(prevDay, 'yyyyMMdd')],
-      queryFn: () => apiService.fetchMatches(prevDay),
-      staleTime: 2 * 60 * 1000,
-    });
+      queryClient.prefetchQuery({
+        queryKey: ['matches', format(prevDay, 'yyyyMMdd')],
+        queryFn: () => apiService.fetchMatches(prevDay),
+        staleTime: 2 * 60 * 1000,
+      });
+    }, 1000); // Delay 1 second
   };
 
   return {

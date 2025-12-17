@@ -1,5 +1,5 @@
 'use client';
-
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import { apiService } from '@/lib/services/api.service';
@@ -13,6 +13,7 @@ export default function StandingsPage() {
     queryKey: ['standings', 47], // Premier League
     queryFn: () => apiService.fetchStandings(47),
     staleTime: 10 * 60 * 1000, // 10 minutes
+    retry: 2,
   });
 
   if (isLoading) {

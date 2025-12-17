@@ -8,6 +8,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // ✅ FIXED: Remove duplicate 'text-' prefix
         primary: {
           DEFAULT: '#ff6600',
           light: '#ffd9b3',
@@ -22,6 +23,9 @@ module.exports = {
         background: '#f5f5f5',
         border: '#e0e0e0',
         'border-light': '#f0f0f0',
+        // ✅ FIXED: Proper naming
+        'text-primary': '#1a1a1a',
+        'text-secondary': '#666666',
       },
       boxShadow: {
         'default': '0 4px 12px rgba(0, 0, 0, 0.08)',

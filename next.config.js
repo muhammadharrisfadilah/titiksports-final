@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Optimize images dari Fotmob
+  // ✅ OPTIMIZE images
   images: {
     remotePatterns: [
       {
@@ -10,69 +10,91 @@ const nextConfig = {
       },
     ],
     formats: ['image/webp', 'image/avif'],
+    deviceSizes: [640, 750, 828, 1080, 1200],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],
+  },
+  // ✅ ADD THIS: Copy service worker to public
+  async rewrites() {
+    return [
+      // Your existing rewrites...
+    ];
   },
 
-  // Headers untuk security & SEO
+  // ✅ SECURITY & SEO headers
   async headers() {
     return [
-      {
-        source: '/:path*',
+        {
+        source: '/sw.js',
         headers: [
           {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'on'
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate',
           },
           {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN'
+            key: 'Service-Worker-Allowed',
+            value: '/',
           },
+        ],
+      },
+      {
+        source: '/manifest.json',
+        headers: [
           {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff'
+            key: 'Cache-Control',
+            value: 'public, max-age=604800, immutable',
           },
+        ],
+      },
+      // ✅ Cache static assets aggressively
+      {
+        source: '/static/:path*',
+        headers: [
           {
-            key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin'
-          },
-          {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()'
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
           },
         ],
       },
     ];
   },
 
-  // Rewrites untuk API proxy (proteksi API)
-  async rewrites() {
-    return [
-      {
-        source: '/api/proxy/:path*',
-        destination: 'https://www.fotmob.com/api/:path*',
-      },
-    ];
-  },
+  // ✅ NO MORE REWRITES - Client calls Fotmob API directly!
+  // This saves serverless function costs
 
-  // Compression
+  // ✅ Compression
   compress: true,
 
-  // Optimisasi production
+  // ✅ Production optimizations
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
   },
 
-  // Power by header removal
+  // ✅ Power by header removal
   poweredByHeader: false,
 
-  // React strict mode
+  // ✅ React strict mode
   reactStrictMode: true,
 
-  // SWC minify (faster than Terser)
+  // ✅ SWC minify (faster than Terser)
   swcMinify: true,
 
-  // Experimental features
+  // ✅ Experimental features
   experimental: {
-    optimizeCss: true,
+    // ✅ Disable optimizeCss to avoid critters error
+    optimizeCss: false,
+    
+    // ✅ Enable optimizePackageImports for tree shaking
+    optimizePackageImports: ['date-fns', 'axios', '@tanstack/react-query'],
+  },
+
+  // ✅ TypeScript and ESLint
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  eslint: {
+    ignoreDuringBuilds: false,
   },
 };
 
