@@ -5,8 +5,15 @@ class SupabaseService {
   private client: SupabaseClient;
 
   constructor() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      throw new Error('Environment variable NEXT_PUBLIC_SUPABASE_URL is not set');
+    }
+    if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      throw new Error('Environment variable NEXT_PUBLIC_SUPABASE_ANON_KEY is not set');
+    }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     this.client = createClient(supabaseUrl, supabaseKey, {
       auth: {

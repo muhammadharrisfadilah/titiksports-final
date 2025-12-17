@@ -12,12 +12,24 @@ export function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    // ✅ Mark component as mounted (client-side)
+    setIsMounted(true);
+
     // Check if already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    if (typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true);
       return;
+    }
+
+    // Check if dismissed recently
+    if (typeof window !== 'undefined') {
+      const dismissedTime = localStorage.getItem('pwa-prompt-dismissed');
+      if (dismissedTime && Date.now() - parseInt(dismissedTime) < 7 * 24 * 60 * 60 * 1000) {
+        return;
+      }
     }
 
     // Listen for install prompt
@@ -26,7 +38,7 @@ export function InstallPrompt() {
       const promptEvent = e as BeforeInstallPromptEvent;
       setDeferredPrompt(promptEvent);
       
-      // Show prompt after 30 seconds (not too annoying)
+      // Show prompt after 30 seconds
       setTimeout(() => {
         setShowPrompt(true);
       }, 30000);
@@ -69,18 +81,15 @@ export function InstallPrompt() {
     setShowPrompt(false);
     
     // Don't show again for 7 days
-    localStorage.setItem('pwa-prompt-dismissed', Date.now().toString());
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('pwa-prompt-dismissed', Date.now().toString());
+    }
   };
 
-  // Don't show if installed or dismissed recently
-  if (isInstalled) return null;
-  
-  const dismissedTime = localStorage.getItem('pwa-prompt-dismissed');
-  if (dismissedTime && Date.now() - parseInt(dismissedTime) < 7 * 24 * 60 * 60 * 1000) {
+  // ✅ Don't render anything until client-side
+  if (!isMounted || isInstalled || !showPrompt) {
     return null;
   }
-
-  if (!showPrompt) return null;
 
   return (
     <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[100] w-[calc(100%-2rem)] max-w-[460px]">
@@ -153,8 +162,11 @@ export function InstallPrompt() {
 export function InstallButton() {
   const [canInstall, setCanInstall] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+
     const handler = (e: Event) => {
       e.preventDefault();
       const promptEvent = e as BeforeInstallPromptEvent;
@@ -182,7 +194,9 @@ export function InstallButton() {
     setDeferredPrompt(null);
   };
 
-  if (!canInstall) return null;
+  if (!isMounted || !canInstall) {
+    return null;
+  }
 
   return (
     <button

@@ -9,6 +9,7 @@ import { PWAProvider } from '@/components/pwa/PWAProvider';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
   title: 'TITIK SPORTS - Live Football Scores',
   description: 'Live football scores, match schedules, lineups, and statistics. Your ultimate football companion.',
   manifest: '/manifest.json',

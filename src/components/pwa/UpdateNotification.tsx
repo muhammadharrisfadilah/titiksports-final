@@ -1,8 +1,7 @@
 'use client';
 
-import { useServiceWorker } from '@/lib/hooks/useServiceWorker';
-import { cn } from '@/lib/utils/cn';
 import { useState, useEffect } from 'react';
+import { useServiceWorker } from '@/lib/hooks/useServiceWorker';
 
 export function UpdateNotification() {
   const { hasUpdate, applyUpdate } = useServiceWorker();
@@ -44,23 +43,30 @@ export function UpdateNotification() {
 // ==========================================
 export function OfflineIndicator() {
   const [isOnline, setIsOnline] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsOnline(navigator.onLine);
+    setIsMounted(true);
+    
+    if (typeof window !== 'undefined') {
+      setIsOnline(navigator.onLine);
 
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+      const handleOnline = () => setIsOnline(true);
+      const handleOffline = () => setIsOnline(false);
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
 
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
+      return () => {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+      };
+    }
   }, []);
 
-  if (isOnline) return null;
+  if (!isMounted || isOnline) {
+    return null;
+  }
 
   return (
     <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] w-[calc(100%-2rem)] max-w-[460px]">
